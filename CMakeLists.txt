@@ -10,7 +10,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   sensor_msgs
-  cv_bridge)
+  cv_bridge
+  image_transport)
 include_directories(${catkin_INCLUDE_DIRS})
 message(STATUS "catkin include -- ${catkin_INCLUDE_DIRS}")
 ###

@@ -5,24 +5,10 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <glog/logging.h>
+#include <sensor_msgs/Imu.h>
 
-// int main(int argc, char** argv)
-// {
-
-
-//   image_transport::ImageTransport it(nh);
-//   image_transport::Publisher pub = it.advertise("camera/image", 1);
-//   cv::Mat image = cv::imread(argv[1], CV_LOAD_IMAGE_COLOR);
-//   cv::waitKey(30);
-//   sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image).toImageMsg();
-
-//   ros::Rate loop_rate(5);
-//   while (nh.ok()) {
-//     pub.publish(msg);
-//     ros::spinOnce();
-//     loop_rate.sleep();
-//   }
-// }
+int img_cnt = 0;
+int imu_cnt = 0;
 
 void img_callback(const sensor_msgs::ImageConstPtr & msg)
 {
@@ -33,7 +19,7 @@ void img_callback(const sensor_msgs::ImageConstPtr & msg)
   cv_bridge::CvImageConstPtr ptr;
   if (msg->encoding == "8UC1")
   {
-    std::cout << "Encoding == 8UC1\n";
+    // std::cout << "Encoding == 8UC1\n";
     sensor_msgs::Image img;
     img.header = msg->header;
     img.height = msg->height;
@@ -51,12 +37,23 @@ void img_callback(const sensor_msgs::ImageConstPtr & msg)
 
   }
 
-  cv::Mat show_img = ptr->image;
-  std::string filename = "./image/img_" + std::to_string(msg->header.stamp.toSec()) + ".png" ;
-  std::cout << "Write to " << filename << std::endl;
+  std::cout << "img: " << ++img_cnt << std::endl;
+  // cv::Mat show_img = ptr->image;
+  // std::string filename = "./image/img_" + std::to_string(msg->header.stamp.toSec()) + ".png" ;
+  // imwrite(filename, show_img);
 
+}
 
-  imwrite(filename, show_img);
+void imu_callback(const sensor_msgs::ImuConstPtr & msg)
+{
+  // std::cout << msg->header.stamp.toNSec() << ","
+  //   << msg->angular_velocity.x << ","
+  //   << msg->angular_velocity.y << ","
+  //   << msg->angular_velocity.z << ","
+  //   << msg->linear_acceleration.x << ","
+  //   << msg->linear_acceleration.y << ","
+  //   << msg->linear_acceleration.z << std::endl;
+  std::cout << "imu: " << ++imu_cnt << std::endl;
 }
 
 
@@ -73,8 +70,13 @@ int main(int argc, char** argv)
 
   // ROS Init
   ros::init(argc, argv, "image_subscriber");
-  ros::NodeHandle nh("~");
-  ros::Subscriber sub_img = nh.subscribe<sensor_msgs::Image>("/cam0/image_raw", 100, img_callback); //  [sensor_msgs/Image]
+  ros::NodeHandle nh;
+  image_transport::ImageTransport it(nh);
+
+  // ros::Subscriber sub_img = nh.subscribe<sensor_msgs::Image>("/cam0/image_raw", 1000, img_callback);
+  // ros::Subscriber sub_imu = nh.subscribe<sensor_msgs::Imu>("/imu0", 1000, imu_callback);
+  ros::Subscriber sub_img = nh.subscribe<sensor_msgs::Image>("/topic/cam0", 1000, img_callback);
+  ros::Subscriber sub_imu = nh.subscribe<sensor_msgs::Imu>("/topic/imu0", 1000, imu_callback);
   ros::spin();
 
   return 0;
